@@ -1,0 +1,394 @@
+import 'package:flutter/material.dart';
+
+const List<Widget> sex = <Widget>[
+  Text('Male'),
+  Text('Female')
+];
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Terpiez',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const Homepage(),
+    );
+  }
+}
+
+class Homepage extends StatelessWidget {
+  const Homepage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Heart-Lung Calculator')
+      ),
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return Row(
+            children: [
+              InkWell(
+                child:  Container(
+                  height: constraints.maxHeight,
+                  width: constraints.maxWidth / 2,
+                  color: const Color.fromARGB(255, 238, 134, 132),
+                  child: Center(
+                    child: Text(
+                      "Heart",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20.0, // insert your font size here
+                      )
+                    ),
+                  ),
+              ),
+              onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HeartCalculator())
+                  );
+                }, 
+              ),
+              InkWell(
+                child:  Container(
+                  height: constraints.maxHeight,
+                  width: constraints.maxWidth / 2,
+                  color: Colors.blue.shade300,
+                  child: Center(
+                    child: Text(
+                      "Lung",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20.0, // insert your font size here
+                      )
+                    ),
+                  ),
+              ),
+              onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HeartCalculator())
+                  );
+                }, 
+              ),
+            ],
+          );
+        },
+      ),
+          
+    );
+  }
+}
+
+class HeartCalculator extends StatefulWidget {
+  const HeartCalculator({super.key});
+
+  @override
+  State<HeartCalculator> createState() => _HeartCalculatorState();
+}
+                          
+class _HeartCalculatorState extends State<HeartCalculator> {  
+  final List<bool> _selectedSexDonor = <bool>[true, false];
+  final List<bool> _selectedSexRecipient = <bool>[true, false];
+  bool vertical = false;
+  double _donorAge = 20;
+  double _donorWeight = 20;
+  double _donorHeight = 20;
+
+  double _recipientAge = 20;
+  double _recipientWeight = 20;
+  double _recipientHeight = 20;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Calculator')
+      ),
+      body: SafeArea(child: 
+        Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(children: [
+            Row(children: [
+              Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Donor', 
+              style: TextStyle(fontSize: 18))
+            ),
+            SizedBox(width: 15),
+            ToggleButtons(
+              direction: vertical ? Axis.vertical : Axis.horizontal,
+              onPressed: (int index) {
+                setState(() {
+                  for (int i = 0; i < _selectedSexDonor.length; i++) {
+                    _selectedSexDonor[i] = i == index;
+                  }
+                });
+              },
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              selectedBorderColor: Colors.red[700],
+              selectedColor: Colors.white,
+              fillColor: Colors.red[200],
+              color: Colors.red[400],
+              constraints: const BoxConstraints(
+                minHeight: 40.0,
+                minWidth: 80.0,
+              ),
+              isSelected: _selectedSexDonor,
+              children: sex,
+            ),
+
+            ],),
+            SizedBox(width: 75),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Age', 
+              style: TextStyle(fontSize: 18))
+            ),
+            Slider(
+              min: 0.0,
+              max: 100.0,
+              value: _donorAge,
+              divisions: 100,
+              label: '${_donorAge.round()}',
+              activeColor: Colors.red[400],
+              onChanged: (value) {
+                setState(() {
+                _donorAge = value;
+              });
+            },
+          ),
+            SizedBox(width: 75),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Weight', 
+              style: TextStyle(fontSize: 18))
+            ),
+            Slider(
+              min: 0.0,
+              max: 100.0,
+              value: _donorWeight,
+              divisions: 100,
+              label: '${_donorWeight.round()}',
+              activeColor: Colors.red[400],
+              onChanged: (value) {
+                setState(() {
+                _donorWeight = value;
+                });
+              },
+            ),
+            SizedBox(width: 75),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Height', 
+              style: TextStyle(fontSize: 18))
+            ),
+            Slider(
+              min: 0.0,
+              max: 100.0,
+              value: _donorHeight,
+              divisions: 100,
+              label: '${_donorHeight.round()}',
+              activeColor: Colors.red[400],
+              onChanged: (value) {
+                setState(() {
+                _donorHeight = value;
+                });
+              },
+            ),
+            SizedBox(width: 150),
+            Row(children: [
+              Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Recipient', 
+              style: TextStyle(fontSize: 18))
+            ),
+            SizedBox(width: 15),
+            ToggleButtons(
+              direction: vertical ? Axis.vertical : Axis.horizontal,
+              onPressed: (int index) {
+                setState(() {
+                  for (int i = 0; i < _selectedSexRecipient.length; i++) {
+                    _selectedSexRecipient[i] = i == index;
+                  }
+                });
+              },
+              borderRadius: const BorderRadius.all(Radius.circular(8)),
+              selectedBorderColor: Colors.red[700],
+              selectedColor: Colors.white,
+              fillColor: Colors.red[200],
+              color: Colors.red[400],
+              constraints: const BoxConstraints(
+                minHeight: 40.0,
+                minWidth: 80.0,
+              ),
+              isSelected: _selectedSexRecipient,
+              children: sex,
+            ),
+
+            ],),
+            SizedBox(width: 75),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Age', 
+              style: TextStyle(fontSize: 18))
+            ),
+            Slider(
+              min: 0.0,
+              max: 100.0,
+              value: _recipientAge,
+              divisions: 100,
+              label: '${_recipientAge.round()}',
+              activeColor: Colors.red[400],
+              onChanged: (value) {
+                setState(() {
+                _recipientAge = value;
+              });
+            },
+          ),
+            SizedBox(width: 75),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Weight', 
+              style: TextStyle(fontSize: 18))
+            ),
+            Slider(
+              min: 0.0,
+              max: 100.0,
+              value: _recipientWeight,
+              divisions: 100,
+              label: '${_recipientWeight.round()}',
+              activeColor: Colors.red[400],
+              onChanged: (value) {
+                setState(() {
+                _recipientWeight = value;
+                });
+              },
+            ),
+            SizedBox(width: 75),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Height', 
+              style: TextStyle(fontSize: 18))
+            ),
+            Slider(
+              min: 0.0,
+              max: 100.0,
+              value: _recipientHeight,
+              divisions: 100,
+              label: '${_recipientHeight.round()}',
+              activeColor: Colors.red[400],
+              onChanged: (value) {
+                setState(() {
+                _recipientHeight = value;
+                });
+              },
+            ),
+            SizedBox(width: 300),
+            InkWell(
+                child:  Container(
+                  width: 100,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color.fromARGB(255, 0, 0, 0))
+                  ),
+                  child: const Center(child: Text("Calculate!")),
+              ),
+              onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Results())
+                  );
+                }, 
+              ),
+          ],)
+        )
+      )      
+    );
+  }
+}
+
+
+//doesn't actually do anything
+class LungCalculator extends StatelessWidget {
+  const LungCalculator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Lung Calculator')
+      ),
+      body: SafeArea(child: 
+        Column(children: [
+        Icon(
+          Icons.airplanemode_active,
+          size: 100
+        ),
+        Center(
+          child: Text('Plane'),
+        )
+      ],)
+      
+      )
+    );
+  }
+}
+
+class Results extends StatelessWidget {
+  const Results({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Results')
+      ),
+      body: SafeArea(child: 
+        Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(children: [
+        Align(
+              alignment: Alignment.centerLeft,
+              child: Text('pTLC Donor: 7.2', 
+              style: TextStyle(fontSize: 18))
+        ),
+        Align(
+              alignment: Alignment.centerLeft,
+              child: Text('pTLC Recipient: 4.2', 
+              style: TextStyle(fontSize: 18))
+        ),
+        Align(
+              alignment: Alignment.centerLeft,
+              child: Text('pTLC Ratio: 0.714', 
+              style: TextStyle(fontSize: 18))
+        ),
+        Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Relative Risk: 1.4', 
+              style: TextStyle(fontSize: 18))
+        ),
+        SizedBox(height: 50),
+        Image.asset('assets/images/relativerisk.jpeg')
+      ],)
+        )
+
+      )
+    );
+  }
+}
+
+
+
+
