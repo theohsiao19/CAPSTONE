@@ -102,13 +102,13 @@ class _HeartCalculatorState extends State<HeartCalculator> {
   final List<bool> _selectedSexDonor = <bool>[true, false];
   final List<bool> _selectedSexRecipient = <bool>[true, false];
   bool vertical = false;
-  double _donorAge = 20;
-  double _donorWeight = 20;
-  double _donorHeight = 20;
+  //double _donorAge = 20;
+  //double _donorWeight = 20;
+  //double _donorHeight = 20;
 
-  double _recipientAge = 20;
-  double _recipientWeight = 20;
-  double _recipientHeight = 20;
+  //double _recipientAge = 20;
+  //double _recipientWeight = 20;
+  //double _recipientHeight = 20;
   
   @override
   Widget build(BuildContext context) {
@@ -120,13 +120,18 @@ class _HeartCalculatorState extends State<HeartCalculator> {
         Padding(
           padding: const EdgeInsets.all(15),
           child: Column(children: [
+
+            //gender button 1
             Row(children: [
-              Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Donor', 
-              style: TextStyle(fontSize: 18))
-            ),
-            SizedBox(width: 15),
+              SizedBox(
+                  width: 100,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Donor', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
             ToggleButtons(
               direction: vertical ? Axis.vertical : Axis.horizontal,
               onPressed: (int index) {
@@ -137,10 +142,10 @@ class _HeartCalculatorState extends State<HeartCalculator> {
                 });
               },
               borderRadius: const BorderRadius.all(Radius.circular(8)),
-              selectedBorderColor: Colors.red[700],
-              selectedColor: Colors.white,
-              fillColor: Colors.red[200],
-              color: Colors.red[400],
+              //selectedBorderColor: Colors.red[700],
+              //selectedColor: Colors.white,
+              //fillColor: Colors.red[200],
+              //color: Colors.red[400],
               constraints: const BoxConstraints(
                 minHeight: 40.0,
                 minWidth: 80.0,
@@ -150,71 +155,87 @@ class _HeartCalculatorState extends State<HeartCalculator> {
             ),
 
             ],),
-            SizedBox(width: 75),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Age', 
-              style: TextStyle(fontSize: 18))
+            SizedBox(height: 15),
+
+            //input 1
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 75,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Age', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'years'
+                    )
+                  ),
+                ),
+              ],
             ),
-            Slider(
-              min: 0.0,
-              max: 100.0,
-              value: _donorAge,
-              divisions: 100,
-              label: '${_donorAge.round()}',
-              activeColor: Colors.red[400],
-              onChanged: (value) {
-                setState(() {
-                _donorAge = value;
-              });
-            },
-          ),
-            SizedBox(width: 75),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Weight', 
-              style: TextStyle(fontSize: 18))
+            SizedBox(height: 15),
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 75,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Weight', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'kg'
+                    )
+                  ),
+                ),
+              ],
             ),
-            Slider(
-              min: 0.0,
-              max: 100.0,
-              value: _donorWeight,
-              divisions: 100,
-              label: '${_donorWeight.round()}',
-              activeColor: Colors.red[400],
-              onChanged: (value) {
-                setState(() {
-                _donorWeight = value;
-                });
-              },
+            SizedBox(height: 15),
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 75,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Height', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'cm'
+                    )
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: 75),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Height', 
-              style: TextStyle(fontSize: 18))
-            ),
-            Slider(
-              min: 0.0,
-              max: 100.0,
-              value: _donorHeight,
-              divisions: 100,
-              label: '${_donorHeight.round()}',
-              activeColor: Colors.red[400],
-              onChanged: (value) {
-                setState(() {
-                _donorHeight = value;
-                });
-              },
-            ),
-            SizedBox(width: 150),
+            SizedBox(height: 15),
+
+            //gender button 2
             Row(children: [
-              Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Recipient', 
-              style: TextStyle(fontSize: 18))
-            ),
-            SizedBox(width: 15),
+              SizedBox(
+                  width: 100,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Recipient', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
             ToggleButtons(
               direction: vertical ? Axis.vertical : Axis.horizontal,
               onPressed: (int index) {
@@ -225,10 +246,10 @@ class _HeartCalculatorState extends State<HeartCalculator> {
                 });
               },
               borderRadius: const BorderRadius.all(Radius.circular(8)),
-              selectedBorderColor: Colors.red[700],
-              selectedColor: Colors.white,
-              fillColor: Colors.red[200],
-              color: Colors.red[400],
+              //selectedBorderColor: Colors.red[700],
+              //selectedColor: Colors.white,
+              //fillColor: Colors.red[200],
+              //color: Colors.red[400],
               constraints: const BoxConstraints(
                 minHeight: 40.0,
                 minWidth: 80.0,
@@ -238,64 +259,77 @@ class _HeartCalculatorState extends State<HeartCalculator> {
             ),
 
             ],),
-            SizedBox(width: 75),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Age', 
-              style: TextStyle(fontSize: 18))
+            SizedBox(height: 15),
+           
+            //input 2
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 75,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Age', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'years'
+                    )
+                  ),
+                ),
+              ],
             ),
-            Slider(
-              min: 0.0,
-              max: 100.0,
-              value: _recipientAge,
-              divisions: 100,
-              label: '${_recipientAge.round()}',
-              activeColor: Colors.red[400],
-              onChanged: (value) {
-                setState(() {
-                _recipientAge = value;
-              });
-            },
-          ),
-            SizedBox(width: 75),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Weight', 
-              style: TextStyle(fontSize: 18))
+            SizedBox(height: 15),
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 75,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Weight', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'kg'
+                    )
+                  ),
+                ),
+              ],
             ),
-            Slider(
-              min: 0.0,
-              max: 100.0,
-              value: _recipientWeight,
-              divisions: 100,
-              label: '${_recipientWeight.round()}',
-              activeColor: Colors.red[400],
-              onChanged: (value) {
-                setState(() {
-                _recipientWeight = value;
-                });
-              },
+            SizedBox(height: 15),
+            Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 75,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Height', 
+                      style: TextStyle(fontSize: 18)
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'cm'
+                    )
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: 75),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Height', 
-              style: TextStyle(fontSize: 18))
-            ),
-            Slider(
-              min: 0.0,
-              max: 100.0,
-              value: _recipientHeight,
-              divisions: 100,
-              label: '${_recipientHeight.round()}',
-              activeColor: Colors.red[400],
-              onChanged: (value) {
-                setState(() {
-                _recipientHeight = value;
-                });
-              },
-            ),
-            SizedBox(width: 300),
+            SizedBox(height: 15),
+
+            SizedBox(height: 50),
             InkWell(
                 child:  Container(
                   width: 100,
@@ -310,8 +344,10 @@ class _HeartCalculatorState extends State<HeartCalculator> {
                     context,
                     MaterialPageRoute(builder: (context) => Results())
                   );
-                }, 
-              ),
+              }, 
+            ),
+            
+
           ],)
         )
       )      
