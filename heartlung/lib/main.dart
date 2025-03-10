@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 const List<Widget> sex = <Widget>[
   Text('Male'),
@@ -13,86 +15,86 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Terpiez',
+      // Simple light theme with Material 3
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
         useMaterial3: true,
       ),
-      home: const Homepage(),
+      
+      home: const MyHomeScreen(),
     );
   }
 }
 
-class Homepage extends StatelessWidget {
-  const Homepage({super.key});
-  
+class MyHomeScreen extends StatefulWidget {
+  const MyHomeScreen({super.key});
+
+  @override
+  State<MyHomeScreen> createState() => _MyHomeScreenState();
+}
+
+class _MyHomeScreenState extends State<MyHomeScreen> {
+  int _selectedIndex = 0;
+
+  // The two pages to switch between
+  final List<Widget> _pages = [
+    HeartCalculator(),
+    LungCalculator(),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastSelectedIndex();
+  }
+
+  // Load the last selected index from SharedPreferences.
+  Future<void> _loadLastSelectedIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    final index = prefs.getInt('lastSelectedIndex') ?? 0;
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  // When the user taps a bottom nav item, update the index and save it.
+  Future<void> _onItemTapped(int index) async {
+    setState(() {
+      _selectedIndex = index;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('lastSelectedIndex', index);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Heart-Lung Calculator'),
       ),
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          return Row(
-            children: [
-              // Heart button
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HeartCalculator()),
-                  );
-                },
-                child: Container(
-                  height: constraints.maxHeight,
-                  width: constraints.maxWidth / 2,
-                  color: const Color.fromARGB(255, 238, 134, 132),
-                  child: const Center(
-                    child: Text(
-                      "Heart",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20.0,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Lung button
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LungCalculator()),
-                  );
-                },
-                child: Container(
-                  height: constraints.maxHeight,
-                  width: constraints.maxWidth / 2,
-                  color: Colors.blue.shade300,
-                  child: const Center(
-                    child: Text(
-                      "Lung",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20.0,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: ImageIcon(AssetImage('assets/images/heart.png')),
+            label: 'Heart',
+          ),
+          BottomNavigationBarItem(
+            icon: ImageIcon(AssetImage('assets/images/lung.png')),
+            label: 'Lung',
+          ),
+        ],
       ),
     );
   }
 }
+
 
 
 class HeartCalculator extends StatefulWidget {
@@ -116,19 +118,16 @@ class _HeartCalculatorState extends State<HeartCalculator> {
   // Toggles for gender selection
   final List<bool> _selectedSexDonor = <bool>[true, false];
   final List<bool> _selectedSexRecipient = <bool>[true, false];
-  bool vertical = false;
 
-  // Separate unit toggles for donor inputs
-  // For weight: index 0 = kg, index 1 = lbs. Default to kg.
-  final List<bool> _selectedDonorWeightUnit = [true, false];
-  // For height: index 0 = cm, index 1 = in. Default to cm.
-  final List<bool> _selectedDonorHeightUnit = [true, false];
+  // Unit toggles for donor
+  final List<bool> _selectedDonorWeightUnit = [true, false]; // 0=kg, 1=lbs
+  final List<bool> _selectedDonorHeightUnit = [true, false]; // 0=cm, 1=in
 
-  // Separate unit toggles for recipient inputs
+  // Unit toggles for recipient
   final List<bool> _selectedRecipientWeightUnit = [true, false];
   final List<bool> _selectedRecipientHeightUnit = [true, false];
 
-  // A helper method to build larger ToggleButtons for units.
+  // Helper to build larger toggle buttons for units
   Widget buildUnitToggle({
     required List<bool> isSelected,
     required ValueChanged<int> onPressed,
@@ -137,16 +136,56 @@ class _HeartCalculatorState extends State<HeartCalculator> {
     return ToggleButtons(
       isSelected: isSelected,
       onPressed: onPressed,
-      constraints: const BoxConstraints(minWidth: 70, minHeight: 50),
+      constraints: const BoxConstraints(minWidth: 70, minHeight: 40),
       borderRadius: BorderRadius.circular(10),
       selectedColor: Colors.white,
       fillColor: Theme.of(context).primaryColor,
-      children: labels
-          .map((label) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(label, style: const TextStyle(fontSize: 18)),
-              ))
-          .toList(),
+      textStyle: const TextStyle(fontSize: 16),
+      children: labels.map((label) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Text(label),
+      )).toList(),
+    );
+  }
+
+  // Reusable row widget for "Label + TextField + (optional) Unit Toggle"
+  Widget buildInputRow({
+    required String label,
+    required TextEditingController controller,
+    String hintText = '',
+    bool showUnitToggle = false,
+    List<bool>? isSelected,
+    ValueChanged<int>? onPressed,
+    List<String>? labels,
+  }) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 75,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: hintText,
+            ),
+            keyboardType: TextInputType.number,
+          ),
+        ),
+        if (showUnitToggle && isSelected != null && onPressed != null && labels != null) ...[
+          const SizedBox(width: 8),
+          buildUnitToggle(
+            isSelected: isSelected,
+            onPressed: onPressed,
+            labels: labels,
+          ),
+        ],
+      ],
     );
   }
 
@@ -157,342 +196,242 @@ class _HeartCalculatorState extends State<HeartCalculator> {
         title: const Text('Calculator'),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Donor Section
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 100,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Donor', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    ToggleButtons(
-                      direction: vertical ? Axis.vertical : Axis.horizontal,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedSexDonor.length; i++) {
-                            _selectedSexDonor[i] = (i == index);
-                          }
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      constraints: const BoxConstraints(minHeight: 40, minWidth: 80),
-                      isSelected: _selectedSexDonor,
-                      children: sex,
-                    ),
-                  ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Donor Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 15),
-                // Donor Age
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 75,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Age', style: TextStyle(fontSize: 18)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Title Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Donor Info',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          // Sex Toggle
+                          ToggleButtons(
+                            borderRadius: BorderRadius.circular(8),
+                            constraints: const BoxConstraints(minHeight: 40, minWidth: 60),
+                            isSelected: _selectedSexDonor,
+                            onPressed: (int index) {
+                              setState(() {
+                                for (int i = 0; i < _selectedSexDonor.length; i++) {
+                                  _selectedSexDonor[i] = (i == index);
+                                }
+                              });
+                            },
+                            children: sex,
+                          ),
+                        ],
                       ),
-                    ),
-                    Expanded(
-                      child: TextField(
+                      const SizedBox(height: 16),
+                      // Age
+                      buildInputRow(
+                        label: 'Age',
                         controller: donorAgeController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'years',
-                        ),
-                        keyboardType: TextInputType.number,
+                        hintText: 'years',
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // Donor Weight with unit toggle
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 75,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Weight', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
+                      const SizedBox(height: 16),
+                      // Weight
+                      buildInputRow(
+                        label: 'Weight',
                         controller: donorWeightController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'value',
-                        ),
-                        keyboardType: TextInputType.number,
+                        hintText: 'value',
+                        showUnitToggle: true,
+                        isSelected: _selectedDonorWeightUnit,
+                        onPressed: (int index) {
+                          setState(() {
+                            for (int i = 0; i < _selectedDonorWeightUnit.length; i++) {
+                              _selectedDonorWeightUnit[i] = (i == index);
+                            }
+                          });
+                        },
+                        labels: const ['kg', 'lbs'],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    buildUnitToggle(
-                      isSelected: _selectedDonorWeightUnit,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedDonorWeightUnit.length; i++) {
-                            _selectedDonorWeightUnit[i] = (i == index);
-                          }
-                        });
-                      },
-                      labels: const ['kg', 'lbs'],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // Donor Height with unit toggle
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 75,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Height', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
+                      const SizedBox(height: 16),
+                      // Height
+                      buildInputRow(
+                        label: 'Height',
                         controller: donorHeightController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'value',
-                        ),
-                        keyboardType: TextInputType.number,
+                        hintText: 'value',
+                        showUnitToggle: true,
+                        isSelected: _selectedDonorHeightUnit,
+                        onPressed: (int index) {
+                          setState(() {
+                            for (int i = 0; i < _selectedDonorHeightUnit.length; i++) {
+                              _selectedDonorHeightUnit[i] = (i == index);
+                            }
+                          });
+                        },
+                        labels: const ['cm', 'in'],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    buildUnitToggle(
-                      isSelected: _selectedDonorHeightUnit,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedDonorHeightUnit.length; i++) {
-                            _selectedDonorHeightUnit[i] = (i == index);
-                          }
-                        });
-                      },
-                      labels: const ['cm', 'in'],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Recipient Section
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 100,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Recipient', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    ToggleButtons(
-                      direction: vertical ? Axis.vertical : Axis.horizontal,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedSexRecipient.length; i++) {
-                            _selectedSexRecipient[i] = (i == index);
-                          }
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      constraints: const BoxConstraints(minHeight: 40, minWidth: 80),
-                      isSelected: _selectedSexRecipient,
-                      children: sex,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // Recipient Age
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 75,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Age', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: recipientAgeController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'years',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // Recipient Weight with unit toggle
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 75,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Weight', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: recipientWeightController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'value',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    buildUnitToggle(
-                      isSelected: _selectedRecipientWeightUnit,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedRecipientWeightUnit.length; i++) {
-                            _selectedRecipientWeightUnit[i] = (i == index);
-                          }
-                        });
-                      },
-                      labels: const ['kg', 'lbs'],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // Recipient Height with unit toggle
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 75,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Height', style: TextStyle(fontSize: 18)),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: recipientHeightController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'value',
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    buildUnitToggle(
-                      isSelected: _selectedRecipientHeightUnit,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedRecipientHeightUnit.length; i++) {
-                            _selectedRecipientHeightUnit[i] = (i == index);
-                          }
-                        });
-                      },
-                      labels: const ['cm', 'in'],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 50),
-                // Calculate Button with Input Validation and Unit Conversion
-                InkWell(
-                  child: Container(
-                    width: 100,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color.fromARGB(255, 0, 0, 0)),
-                    ),
-                    child: const Center(child: Text("Calculate!")),
+                    ],
                   ),
-                  onTap: () {
-                    // Validate that none of the fields are empty.
-                    if (donorAgeController.text.trim().isEmpty ||
-                        donorWeightController.text.trim().isEmpty ||
-                        donorHeightController.text.trim().isEmpty ||
-                        recipientAgeController.text.trim().isEmpty ||
-                        recipientWeightController.text.trim().isEmpty ||
-                        recipientHeightController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Please fill in all required fields."),
-                        ),
-                      );
-                      return;
-                    }
-
-                    // Read raw values.
-                    final donorAgeStr = donorAgeController.text;
-                    final donorWeightStr = donorWeightController.text;
-                    final donorHeightStr = donorHeightController.text;
-                    final recipientAgeStr = recipientAgeController.text;
-                    final recipientWeightStr = recipientWeightController.text;
-                    final recipientHeightStr = recipientHeightController.text;
-
-                    // Parse age values.
-                    final int donorAgeInt = int.tryParse(donorAgeStr) ?? 0;
-                    final int recipientAgeInt = int.tryParse(recipientAgeStr) ?? 0;
-
-                    // Parse weight and height inputs as double.
-                    double donorWeightInput = double.tryParse(donorWeightStr) ?? 0;
-                    double donorHeightInput = double.tryParse(donorHeightStr) ?? 0;
-                    double recipientWeightInput = double.tryParse(recipientWeightStr) ?? 0;
-                    double recipientHeightInput = double.tryParse(recipientHeightStr) ?? 0;
-
-                    // Convert donor weight if needed (lbs to kg).
-                    if (_selectedDonorWeightUnit[1]) {
-                      donorWeightInput *= 0.453592;
-                    }
-                    // Convert donor height if needed (in to cm).
-                    if (_selectedDonorHeightUnit[1]) {
-                      donorHeightInput *= 2.54;
-                    }
-                    // Convert recipient weight if needed.
-                    if (_selectedRecipientWeightUnit[1]) {
-                      recipientWeightInput *= 0.453592;
-                    }
-                    // Convert recipient height if needed.
-                    if (_selectedRecipientHeightUnit[1]) {
-                      recipientHeightInput *= 2.54;
-                    }
-
-                    // Round the converted values and convert to int.
-                    final int donorWeightInt = donorWeightInput.round();
-                    final int donorHeightInt = donorHeightInput.round();
-                    final int recipientWeightInt = recipientWeightInput.round();
-                    final int recipientHeightInt = recipientHeightInput.round();
-
-                    // Determine gender selection.
-                    String donorSex = _selectedSexDonor[0] ? "Male" : "Female";
-                    String recipientSex = _selectedSexRecipient[0] ? "Male" : "Female";
-
-                    // Navigate to the Results screen with the input values.
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => HeartResults(
-                          donorAge: donorAgeInt,
-                          donorWeight: donorWeightInt,
-                          donorHeight: donorHeightInt,
-                          recipientAge: recipientAgeInt,
-                          recipientWeight: recipientWeightInt,
-                          recipientHeight: recipientHeightInt,
-                          donorSex: donorSex,
-                          recipientSex: recipientSex,
-                        ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Recipient Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Title Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Recipient Info',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          // Sex Toggle
+                          ToggleButtons(
+                            borderRadius: BorderRadius.circular(8),
+                            constraints: const BoxConstraints(minHeight: 40, minWidth: 60),
+                            isSelected: _selectedSexRecipient,
+                            onPressed: (int index) {
+                              setState(() {
+                                for (int i = 0; i < _selectedSexRecipient.length; i++) {
+                                  _selectedSexRecipient[i] = (i == index);
+                                }
+                              });
+                            },
+                            children: sex,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Age
+                      buildInputRow(
+                        label: 'Age',
+                        controller: recipientAgeController,
+                        hintText: 'years',
+                      ),
+                      const SizedBox(height: 16),
+                      // Weight
+                      buildInputRow(
+                        label: 'Weight',
+                        controller: recipientWeightController,
+                        hintText: 'value',
+                        showUnitToggle: true,
+                        isSelected: _selectedRecipientWeightUnit,
+                        onPressed: (int index) {
+                          setState(() {
+                            for (int i = 0; i < _selectedRecipientWeightUnit.length; i++) {
+                              _selectedRecipientWeightUnit[i] = (i == index);
+                            }
+                          });
+                        },
+                        labels: const ['kg', 'lbs'],
+                      ),
+                      const SizedBox(height: 16),
+                      // Height
+                      buildInputRow(
+                        label: 'Height',
+                        controller: recipientHeightController,
+                        hintText: 'value',
+                        showUnitToggle: true,
+                        isSelected: _selectedRecipientHeightUnit,
+                        onPressed: (int index) {
+                          setState(() {
+                            for (int i = 0; i < _selectedRecipientHeightUnit.length; i++) {
+                              _selectedRecipientHeightUnit[i] = (i == index);
+                            }
+                          });
+                        },
+                        labels: const ['cm', 'in'],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              // Calculate Button
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(140, 50),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                onPressed: () {
+                  // Validate that none of the fields are empty.
+                  if (donorAgeController.text.trim().isEmpty ||
+                      donorWeightController.text.trim().isEmpty ||
+                      donorHeightController.text.trim().isEmpty ||
+                      recipientAgeController.text.trim().isEmpty ||
+                      recipientWeightController.text.trim().isEmpty ||
+                      recipientHeightController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Please fill in all required fields."),
                       ),
                     );
-                  },
-                ),
-              ],
-            ),
+                    return;
+                  }
+
+                  // Parse strings
+                  final donorAgeStr = donorAgeController.text;
+                  final donorWeightStr = donorWeightController.text;
+                  final donorHeightStr = donorHeightController.text;
+                  final recipientAgeStr = recipientAgeController.text;
+                  final recipientWeightStr = recipientWeightController.text;
+                  final recipientHeightStr = recipientHeightController.text;
+
+                  final int donorAgeInt = int.tryParse(donorAgeStr) ?? 0;
+                  final int recipientAgeInt = int.tryParse(recipientAgeStr) ?? 0;
+
+                  double donorWeightInput = double.tryParse(donorWeightStr) ?? 0;
+                  double donorHeightInput = double.tryParse(donorHeightStr) ?? 0;
+                  double recipientWeightInput = double.tryParse(recipientWeightStr) ?? 0;
+                  double recipientHeightInput = double.tryParse(recipientHeightStr) ?? 0;
+
+                  // Convert if toggles indicate lbs/in
+                  if (_selectedDonorWeightUnit[1]) donorWeightInput *= 0.453592;
+                  if (_selectedDonorHeightUnit[1]) donorHeightInput *= 2.54;
+                  if (_selectedRecipientWeightUnit[1]) recipientWeightInput *= 0.453592;
+                  if (_selectedRecipientHeightUnit[1]) recipientHeightInput *= 2.54;
+
+                  final int donorWeightInt = donorWeightInput.round();
+                  final int donorHeightInt = donorHeightInput.round();
+                  final int recipientWeightInt = recipientWeightInput.round();
+                  final int recipientHeightInt = recipientHeightInput.round();
+
+                  String donorSex = _selectedSexDonor[0] ? "Male" : "Female";
+                  String recipientSex = _selectedSexRecipient[0] ? "Male" : "Female";
+
+                  // Navigate to HeartResults (you'll need to define HeartResults)
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HeartResults(
+                        donorAge: donorAgeInt,
+                        donorWeight: donorWeightInt,
+                        donorHeight: donorHeightInt,
+                        recipientAge: recipientAgeInt,
+                        recipientWeight: recipientWeightInt,
+                        recipientHeight: recipientHeightInt,
+                        donorSex: donorSex,
+                        recipientSex: recipientSex,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text("Calculate!"),
+              ),
+            ],
           ),
         ),
       ),
@@ -526,175 +465,219 @@ class _LungCalculatorState extends State<LungCalculator> {
     return Scaffold(
       appBar: AppBar(title: const Text('Lung Calculator')),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Donor Sex Toggle
-                Row(
-                  children: [
-                    const Text('Donor Sex: ', style: TextStyle(fontSize: 16)),
-                    ToggleButtons(
-                      isSelected: _selectedSexDonor,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedSexDonor.length; i++) {
-                            _selectedSexDonor[i] = (i == index);
-                          }
-                        });
-                      },
-                      children: const [Text('Male'), Text('Female')],
-                    ),
-                  ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Donor Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 15),
-                // Donor Height Input with Unit Toggle
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 100,
-                      child: Text('Donor Height:', style: TextStyle(fontSize: 16)),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: donorHeightController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Enter height',
-                        ),
-                        keyboardType: TextInputType.number,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Title + Sex Toggle
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Donor Info',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          ToggleButtons(
+                            isSelected: _selectedSexDonor,
+                            borderRadius: BorderRadius.circular(8),
+                            constraints: const BoxConstraints(minHeight: 40, minWidth: 60),
+                            onPressed: (int index) {
+                              setState(() {
+                                for (int i = 0; i < _selectedSexDonor.length; i++) {
+                                  _selectedSexDonor[i] = (i == index);
+                                }
+                              });
+                            },
+                            children: const [Text('Male'), Text('Female')],
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    ToggleButtons(
-                      isSelected: _selectedDonorHeightUnit,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedDonorHeightUnit.length; i++) {
-                            _selectedDonorHeightUnit[i] = (i == index);
-                          }
-                        });
-                      },
-                      children: const [Text('cm'), Text('in')],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Recipient Sex Toggle
-                Row(
-                  children: [
-                    const Text('Recipient Sex: ', style: TextStyle(fontSize: 16)),
-                    ToggleButtons(
-                      isSelected: _selectedSexRecipient,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedSexRecipient.length; i++) {
-                            _selectedSexRecipient[i] = (i == index);
-                          }
-                        });
-                      },
-                      children: const [Text('Male'), Text('Female')],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // Recipient Height Input with Unit Toggle
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 100,
-                      child: Text('Recipient Height:', style: TextStyle(fontSize: 16)),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: recipientHeightController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Enter height',
-                        ),
-                        keyboardType: TextInputType.number,
+                      const SizedBox(height: 16),
+                      // Donor Height Input + Toggle
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 100,
+                            child: Text('Height:', style: TextStyle(fontSize: 16)),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: donorHeightController,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Enter height',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ToggleButtons(
+                            isSelected: _selectedDonorHeightUnit,
+                            borderRadius: BorderRadius.circular(8),
+                            constraints: const BoxConstraints(minHeight: 40, minWidth: 40),
+                            onPressed: (int index) {
+                              setState(() {
+                                for (int i = 0; i < _selectedDonorHeightUnit.length; i++) {
+                                  _selectedDonorHeightUnit[i] = (i == index);
+                                }
+                              });
+                            },
+                            children: const [Text('cm'), Text('in')],
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    ToggleButtons(
-                      isSelected: _selectedRecipientHeightUnit,
-                      onPressed: (int index) {
-                        setState(() {
-                          for (int i = 0; i < _selectedRecipientHeightUnit.length; i++) {
-                            _selectedRecipientHeightUnit[i] = (i == index);
-                          }
-                        });
-                      },
-                      children: const [Text('cm'), Text('in')],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                // Calculate Button with Input Validation and Unit Conversion
-                ElevatedButton(
-                  onPressed: () {
-                    // Validate inputs
-                    if (donorHeightController.text.trim().isEmpty ||
-                        recipientHeightController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Please fill in all required fields."),
-                        ),
-                      );
-                      return;
-                    }
-                    // Read raw input values
-                    final donorHeightStr = donorHeightController.text;
-                    final recipientHeightStr = recipientHeightController.text;
-                    
-                    // Parse height values
-                    double donorHeightInput = double.tryParse(donorHeightStr) ?? 0;
-                    double recipientHeightInput = double.tryParse(recipientHeightStr) ?? 0;
-                    
-                    // Convert donor height if unit is inches to centimeters.
-                    if (_selectedDonorHeightUnit[1]) {
-                      donorHeightInput *= 2.54;
-                    }
-                    // Convert recipient height if unit is inches to centimeters.
-                    if (_selectedRecipientHeightUnit[1]) {
-                      recipientHeightInput *= 2.54;
-                    }
-                    
-                    final int donorHeightInt = donorHeightInput.round();
-                    final int recipientHeightInt = recipientHeightInput.round();
-                    
-                    // Determine sex selections
-                    final String donorSex = _selectedSexDonor[0] ? "Male" : "Female";
-                    final String recipientSex = _selectedSexRecipient[0] ? "Male" : "Female";
-                    
-                    // Navigate to LungResults with the converted height values
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LungResults(
-                          donorHeight: donorHeightInt,
-                          donorSex: donorSex,
-                          recipientHeight: recipientHeightInt,
-                          recipientSex: recipientSex,
-                        ),
+              ),
+              const SizedBox(height: 20),
+              // Recipient Card
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Title + Sex Toggle
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Recipient Info',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          ToggleButtons(
+                            isSelected: _selectedSexRecipient,
+                            borderRadius: BorderRadius.circular(8),
+                            constraints: const BoxConstraints(minHeight: 40, minWidth: 60),
+                            onPressed: (int index) {
+                              setState(() {
+                                for (int i = 0; i < _selectedSexRecipient.length; i++) {
+                                  _selectedSexRecipient[i] = (i == index);
+                                }
+                              });
+                            },
+                            children: const [Text('Male'), Text('Female')],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Recipient Height Input + Toggle
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 100,
+                            child: Text('Height:', style: TextStyle(fontSize: 16)),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: recipientHeightController,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Enter height',
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ToggleButtons(
+                            isSelected: _selectedRecipientHeightUnit,
+                            borderRadius: BorderRadius.circular(8),
+                            constraints: const BoxConstraints(minHeight: 40, minWidth: 40),
+                            onPressed: (int index) {
+                              setState(() {
+                                for (int i = 0; i < _selectedRecipientHeightUnit.length; i++) {
+                                  _selectedRecipientHeightUnit[i] = (i == index);
+                                }
+                              });
+                            },
+                            children: const [Text('cm'), Text('in')],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              // Calculate Button
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(140, 50),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                onPressed: () {
+                  // Validate inputs
+                  if (donorHeightController.text.trim().isEmpty ||
+                      recipientHeightController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Please fill in all required fields."),
                       ),
                     );
-                  },
-                  child: const Text('Calculate!'),
-                ),
-              ],
-            ),
+                    return;
+                  }
+                  // Read raw input values
+                  final donorHeightStr = donorHeightController.text;
+                  final recipientHeightStr = recipientHeightController.text;
+                  
+                  // Parse height values
+                  double donorHeightInput = double.tryParse(donorHeightStr) ?? 0;
+                  double recipientHeightInput = double.tryParse(recipientHeightStr) ?? 0;
+                  
+                  // Convert donor height if unit is inches to centimeters.
+                  if (_selectedDonorHeightUnit[1]) {
+                    donorHeightInput *= 2.54;
+                  }
+                  // Convert recipient height if unit is inches to centimeters.
+                  if (_selectedRecipientHeightUnit[1]) {
+                    recipientHeightInput *= 2.54;
+                  }
+                  
+                  final int donorHeightInt = donorHeightInput.round();
+                  final int recipientHeightInt = recipientHeightInput.round();
+                  
+                  // Determine sex selections
+                  final String donorSex = _selectedSexDonor[0] ? "Male" : "Female";
+                  final String recipientSex = _selectedSexRecipient[0] ? "Male" : "Female";
+                  
+                  // Navigate to LungResults with the converted height values
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LungResults(
+                        donorHeight: donorHeightInt,
+                        donorSex: donorSex,
+                        recipientHeight: recipientHeightInt,
+                        recipientSex: recipientSex,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Calculate!'),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
                          
-
-
-
 
 class HeartResults extends StatelessWidget {
   final int donorAge;
@@ -772,14 +755,16 @@ class HeartResults extends StatelessWidget {
     );
     final double recipientPHM = recipientLVM + recipientRVM;
 
-    // Calculate ratio: ((recipientPHM - donorPHM) / recipientPHM) * 100
+    // Calculate the pHM ratio: ((recipientPHM - donorPHM) / recipientPHM) * 100
     double ratio = 0.0;
     if (recipientPHM != 0.0) {
       ratio = ((recipientPHM - donorPHM) / recipientPHM) * 100.0;
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Heart Results')),
+      appBar: AppBar(
+        title: const Text('Heart Results'),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(15),
@@ -787,7 +772,7 @@ class HeartResults extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Donor Information
+                // Donor Information Card
                 const Text(
                   'Donor Information',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -795,6 +780,11 @@ class HeartResults extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -808,7 +798,7 @@ class HeartResults extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Recipient Information
+                // Recipient Information Card
                 const Text(
                   'Recipient Information',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -816,6 +806,11 @@ class HeartResults extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -836,19 +831,37 @@ class HeartResults extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const Divider(),
-                Text('Donor Left Ventricular Mass: ${donorLVM.toStringAsFixed(2)} g',
-                    style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                Text('Donor Right Ventricular Mass: ${donorRVM.toStringAsFixed(2)} g',
-                    style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                Text('Donor Predicted Heart Mass: ${donorPHM.toStringAsFixed(2)} g',
-                    style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+                Text(
+                  'Donor Left Ventricular Mass: ${donorLVM.toStringAsFixed(2)} g',
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  'Donor Right Ventricular Mass: ${donorRVM.toStringAsFixed(2)} g',
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  'Donor Predicted Heart Mass: ${donorPHM.toStringAsFixed(2)} g',
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 10),
-                Text('Recipient Left Ventricular Mass: ${recipientLVM.toStringAsFixed(2)} g',
-                    style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                Text('Recipient Right Ventricular Mass: ${recipientRVM.toStringAsFixed(2)} g',
-                    style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                Text('Recipient Predicted Heart Mass: ${recipientPHM.toStringAsFixed(2)} g',
-                    style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+                Text(
+                  'Recipient Left Ventricular Mass: ${recipientLVM.toStringAsFixed(2)} g',
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  'Recipient Right Ventricular Mass: ${recipientRVM.toStringAsFixed(2)} g',
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  'Recipient Predicted Heart Mass: ${recipientPHM.toStringAsFixed(2)} g',
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 20),
                 Text(
                   'pHM Ratio: ${ratio.toStringAsFixed(2)}%',
@@ -856,14 +869,17 @@ class HeartResults extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
-                // Button to go back to the homepage
+                // Button to clear the results and go back to the calculator page.
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(140, 50),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
                   onPressed: () {
-                    // Navigate back to Homepage by clearing the stack
-                    Navigator.pushAndRemoveUntil(
+                    // pushReplacement creates a new instance of HeartCalculator
+                    Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const Homepage()),
-                      (route) => false,
+                      MaterialPageRoute(builder: (context) => HeartCalculator()),
                     );
                   },
                   child: const Text('Enter New Patient Info'),
@@ -876,7 +892,6 @@ class HeartResults extends StatelessWidget {
     );
   }
 }
-
 
 
 class LungResults extends StatelessWidget {
@@ -935,6 +950,11 @@ class LungResults extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -962,6 +982,11 @@ class LungResults extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -981,7 +1006,7 @@ class LungResults extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Calculated Results
+                // Calculated Results Section
                 const Text(
                   'Calculated Results',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -1005,16 +1030,27 @@ class LungResults extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
-                // Insert the image before the button
-                Image.asset('assets/images/relativerisk.jpeg'),
+
+                // Chart Title + Image
+                const Text(
+                  'Relative Risk Chart',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Image.asset('assets/images/relativerisknew.png'),
+                
                 const SizedBox(height: 30),
-                // Button to go back to the homepage
+                // Button to go back to the Lung Calculator page
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(140, 50),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
                   onPressed: () {
-                    Navigator.pushAndRemoveUntil(
+                    Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const Homepage()),
-                      (route) => false,
+                      MaterialPageRoute(builder: (context) => const LungCalculator()),
                     );
                   },
                   child: const Text('Enter New Patient Info'),
@@ -1027,4 +1063,5 @@ class LungResults extends StatelessWidget {
     );
   }
 }
+
 
