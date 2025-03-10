@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 const List<Widget> sex = <Widget>[
   Text('Male'),
@@ -6,7 +7,13 @@ const List<Widget> sex = <Widget>[
 ];
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => Counter(),
+      child: const MyApp(),
+    ),
+  );
+
 }
 
 class MyApp extends StatelessWidget {
@@ -25,6 +32,24 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+class Counter with ChangeNotifier {
+  
+  String donorAge = "";
+  String donorWeight = "";
+  String donorHeight = "";
+
+  String recipientAge = "";
+  String recipientWeight = "";
+  String recipientHeight = "";
+  
+  void setDonorAge(inputDonorAge) {
+    donorAge = inputDonorAge;
+    notifyListeners();
+  }
+
+}
+
 
 class Homepage extends StatelessWidget {
   const Homepage({super.key});
@@ -102,7 +127,7 @@ class _HeartCalculatorState extends State<HeartCalculator> {
   final List<bool> _selectedSexDonor = <bool>[true, false];
   final List<bool> _selectedSexRecipient = <bool>[true, false];
   bool vertical = false;
-  //double _donorAge = 20;
+  String _donorAge = "";
   //double _donorWeight = 20;
   //double _donorHeight = 20;
 
@@ -174,7 +199,11 @@ class _HeartCalculatorState extends State<HeartCalculator> {
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
                       hintText: 'years'
-                    )
+                    ),
+                    onChanged: (value) {
+                      var counter = context.read<Counter>();
+                      counter.setDonorAge(value);
+                    }
                   ),
                 ),
               ],
@@ -346,6 +375,9 @@ class _HeartCalculatorState extends State<HeartCalculator> {
                   );
               }, 
             ),
+
+            SizedBox(height: 15),
+            Text(_donorAge)
             
 
           ],)
@@ -416,7 +448,20 @@ class Results extends StatelessWidget {
               style: TextStyle(fontSize: 18))
         ),
         SizedBox(height: 50),
-        Image.asset('assets/images/relativerisk.jpeg')
+        Image.asset('assets/images/relativerisk.jpeg'),
+        SizedBox(height: 50),
+        
+        //provider is completely scuffed so far
+        Align(alignment: Alignment.centerLeft,
+          child: Consumer<Counter> (
+              builder: (context, counter, child) => 
+                Text(
+                  'Donor Age:\t\t${counter.donorAge}',
+                  style: TextStyle(fontSize: 18)
+                )
+          )
+        )
+
       ],)
         )
 
