@@ -789,10 +789,18 @@ class HeartResults extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        Text('Age: $donorAge', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                        Text('Weight: $donorWeight kg', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                        Text('Height: $donorHeight cm', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                        Text('Sex: $donorSex', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+                        Text('Age: $donorAge',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
+                        Text('Weight: $donorWeight kg',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
+                        Text('Height: $donorHeight cm',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
+                        Text('Sex: $donorSex',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
                       ],
                     ),
                   ),
@@ -815,16 +823,24 @@ class HeartResults extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       children: [
-                        Text('Age: $recipientAge', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                        Text('Weight: $recipientWeight kg', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                        Text('Height: $recipientHeight cm', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
-                        Text('Sex: $recipientSex', style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+                        Text('Age: $recipientAge',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
+                        Text('Weight: $recipientWeight kg',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
+                        Text('Height: $recipientHeight cm',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
+                        Text('Sex: $recipientSex',
+                            style: const TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Calculated Results
+                // Calculated Results Section
                 const Text(
                   'Calculated Results',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -863,20 +879,35 @@ class HeartResults extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  'pHM Ratio: ${ratio.toStringAsFixed(2)}%',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                // Emphasized pHM Ratio Container
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'pHM Difference: ${ratio.toStringAsFixed(2)}%',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 const SizedBox(height: 30),
-                // Button to clear the results and go back to the calculator page.
+                // Graph image
+                const SizedBox(height: 30),
+                Image.asset('assets/images/heartgraph.png'),
+                const SizedBox(height: 30),
+                // Button to reset the calculator page
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(140, 50),
                     textStyle: const TextStyle(fontSize: 18),
                   ),
                   onPressed: () {
-                    // pushReplacement creates a new instance of HeartCalculator
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => HeartCalculator()),
@@ -892,7 +923,6 @@ class HeartResults extends StatelessWidget {
     );
   }
 }
-
 
 class LungResults extends StatelessWidget {
   final int donorHeight;    // in cm
@@ -942,7 +972,7 @@ class LungResults extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Donor Information
+                // Donor Information Card
                 const Text(
                   'Donor Information',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -974,7 +1004,7 @@ class LungResults extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Recipient Information
+                // Recipient Information Card
                 const Text(
                   'Recipient Information',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -1024,13 +1054,24 @@ class LungResults extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  'pTLC Ratio (Donor/Recipient): ${ratio.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                // Emphasized pTLC Ratio Container
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'pTLC Ratio (Donor/Recipient): ${ratio.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 const SizedBox(height: 30),
-
                 // Chart Title + Image
                 const Text(
                   'Relative Risk Chart',
@@ -1039,9 +1080,8 @@ class LungResults extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Image.asset('assets/images/relativerisknew.png'),
-                
                 const SizedBox(height: 30),
-                // Button to go back to the Lung Calculator page
+                // Button to clear results and go back to the Lung Calculator page
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(140, 50),
