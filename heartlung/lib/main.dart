@@ -1,11 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'package:provider/provider.dart';
-=======
 import 'package:shared_preferences/shared_preferences.dart';
 
->>>>>>> ec35114a0fb8b8bf7582b725c3850b95d3b0da64
 
 const List<Widget> sex = <Widget>[
   Text('Male'),
@@ -13,13 +9,7 @@ const List<Widget> sex = <Widget>[
 ];
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => Counter(),
-      child: const MyApp(),
-    ),
-  );
-
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -40,28 +30,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-<<<<<<< HEAD
-class Counter with ChangeNotifier {
-  
-  String donorAge = "";
-  String donorWeight = "";
-  String donorHeight = "";
-
-  String recipientAge = "";
-  String recipientWeight = "";
-  String recipientHeight = "";
-  
-  void setDonorAge(inputDonorAge) {
-    donorAge = inputDonorAge;
-    notifyListeners();
-  }
-
-}
-
-
-class Homepage extends StatelessWidget {
-  const Homepage({super.key});
-=======
 class MyHomeScreen extends StatefulWidget {
   const MyHomeScreen({super.key});
 
@@ -102,7 +70,6 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     await prefs.setInt('lastSelectedIndex', index);
   }
 
->>>>>>> ec35114a0fb8b8bf7582b725c3850b95d3b0da64
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,13 +118,6 @@ class _HeartCalculatorState extends State<HeartCalculator> {
   // Toggles for gender selection
   final List<bool> _selectedSexDonor = <bool>[true, false];
   final List<bool> _selectedSexRecipient = <bool>[true, false];
-<<<<<<< HEAD
-  bool vertical = false;
-  String _donorAge = "";
-  //double _donorWeight = 20;
-  //double _donorHeight = 20;
-=======
->>>>>>> ec35114a0fb8b8bf7582b725c3850b95d3b0da64
 
   // Unit toggles for donor
   final List<bool> _selectedDonorWeightUnit = [true, false]; // 0=kg, 1=lbs
@@ -430,82 +390,8 @@ class _HeartCalculatorState extends State<HeartCalculator> {
                   final recipientWeightStr = recipientWeightController.text;
                   final recipientHeightStr = recipientHeightController.text;
 
-<<<<<<< HEAD
-            //input 1
-            Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 75,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Age', 
-                      style: TextStyle(fontSize: 18)
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'years'
-                    ),
-                    onChanged: (value) {
-                      var counter = context.read<Counter>();
-                      counter.setDonorAge(value);
-                    }
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
-            Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 75,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Weight', 
-                      style: TextStyle(fontSize: 18)
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'kg'
-                    )
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
-            Row(
-              children: <Widget>[
-                SizedBox(
-                  width: 75,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Height', 
-                      style: TextStyle(fontSize: 18)
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'cm'
-                    )
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
-=======
                   final int donorAgeInt = int.tryParse(donorAgeStr) ?? 0;
                   final int recipientAgeInt = int.tryParse(recipientAgeStr) ?? 0;
->>>>>>> ec35114a0fb8b8bf7582b725c3850b95d3b0da64
 
                   double donorWeightInput = double.tryParse(donorWeightStr) ?? 0;
                   double donorHeightInput = double.tryParse(donorHeightStr) ?? 0;
@@ -542,18 +428,6 @@ class _HeartCalculatorState extends State<HeartCalculator> {
                       ),
                     ),
                   );
-<<<<<<< HEAD
-              }, 
-            ),
-
-            SizedBox(height: 15),
-            Text(_donorAge)
-            
-
-          ],)
-        )
-      )      
-=======
                 },
                 child: const Text("Calculate!"),
               ),
@@ -561,7 +435,6 @@ class _HeartCalculatorState extends State<HeartCalculator> {
           ),
         ),
       ),
->>>>>>> ec35114a0fb8b8bf7582b725c3850b95d3b0da64
     );
   }
 }
@@ -800,53 +673,9 @@ class _LungCalculatorState extends State<LungCalculator> {
           ),
         ),
       ),
-<<<<<<< HEAD
-      body: SafeArea(child: 
-        Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(children: [
-        Align(
-              alignment: Alignment.centerLeft,
-              child: Text('pTLC Donor: 7.2', 
-              style: TextStyle(fontSize: 18))
-        ),
-        Align(
-              alignment: Alignment.centerLeft,
-              child: Text('pTLC Recipient: 4.2', 
-              style: TextStyle(fontSize: 18))
-        ),
-        Align(
-              alignment: Alignment.centerLeft,
-              child: Text('pTLC Ratio: 0.714', 
-              style: TextStyle(fontSize: 18))
-        ),
-        Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Relative Risk: 1.4', 
-              style: TextStyle(fontSize: 18))
-        ),
-        SizedBox(height: 50),
-        Image.asset('assets/images/relativerisk.jpeg'),
-        SizedBox(height: 50),
-        
-        //provider is completely scuffed so far
-        Align(alignment: Alignment.centerLeft,
-          child: Consumer<Counter> (
-              builder: (context, counter, child) => 
-                Text(
-                  'Donor Age:\t\t${counter.donorAge}',
-                  style: TextStyle(fontSize: 18)
-                )
-          )
-        )
-
-      ],)
-        )
-=======
     );
   }
 }
->>>>>>> ec35114a0fb8b8bf7582b725c3850b95d3b0da64
 
                          
 
